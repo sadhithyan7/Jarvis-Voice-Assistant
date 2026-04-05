@@ -1,2 +1,9 @@
-# Jarvis-Voice-Assistant
-A sophisticated, voice-controlled AI assistant built with Python and Groq (Llama 3.1). Features local Windows system integration, real-time speech processing, and a custom UI visualizer.
+What is it? - A voice-activated Windows assistant using Groq LLM.
+
+How do I install it? - pip install -r requirements.txt.
+
+How do I run it? - Ctrl+Alt+Shift+J hotkey activates the Jarvis.
+
+How do I stop it? - Ctrl+Alt+Shift+K hotkey activates the Standby Mode/Emergency Shutdown.
+
+How do I see the Dashboard? - Win+Ctrl+k open terminal to see Dashboard 

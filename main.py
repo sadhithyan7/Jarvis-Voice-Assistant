@@ -7,9 +7,7 @@ import speaker
 import traceback
 import ctypes
 
-# --- Console Visibility Logic ---
-# This allows us to build an EXE WITH a console, but hide it immediately on startup.
-# Then we can toggle it back on when the user wants to monitor Jarvis!
+# console logic to hide or show the black window
 SW_HIDE = 0
 SW_SHOW = 5
 console_visible = False
@@ -33,23 +31,22 @@ def hide_console_on_boot():
         console_visible = False
 
 def main():
-    # Hide the black window right when Jarvis boots up!
+    # hide window on startup
     hide_console_on_boot()
 
-    # Emergency termination hotkey (Changing from ESC to CTRL+ALT+SHIFT+K)
+    # kill switch - press ctrl+alt+shift+k to close everything
     keyboard.add_hotkey('ctrl+alt+shift+k', lambda: os._exit(0))
     
-    # Dashboard Toggle Hotkey! (Windows Key + Ctrl + J)
+    # press windows+ctrl+j to toggle the logs window
     keyboard.add_hotkey('windows+ctrl+j', toggle_console)
     
-    # System Greeting
-    speaker.speak("Jarvis is online and on standby in the background, Sir.")
+    # say something when jarvis turns on    speaker.speak("Jarvis is online and on standby in the background, Sir.")
     
     while True:
-        # Halt execution until the hotkey is pressed
+        # wait for me to press the hotkey
         keyboard.wait('ctrl+alt+shift+j')
         
-        # --- Conversation Triggered ---
+        # convo starts here
         if not os.environ.get('GROQ_API_KEY') and not os.path.exists(".env"):
             speaker.speak("Sir, I cannot find your API key.")
             continue
@@ -59,7 +56,7 @@ def main():
         is_first_command = True
         
         while active_conversation:
-            # 1. Listen
+            # step 1: listen to the microphone
             text = listener.listen(timeout_val=None if is_first_command else 10)
             
             if not text:
@@ -69,22 +66,22 @@ def main():
             is_first_command = False
             text_lower = text.lower()
             
-            # --- Check for Direct Action (Standby after execution) ---
+            # check if it is a system action so we can go back to sleep instantly
             action_keywords = ["open ", "search wikipedia", "time", "battery", "bluetooth", "volume"]
             is_action = any(keyword in text_lower for keyword in action_keywords)
             
-            # 2. Voice Standby Switch
+            # step 2: check if i told him to shut up
             sleep_commands = ["shut down", "goodbye", "sleep", "exit", "quit", "power down", "shutdown", "stop listening"]
             if any(cmd in text_lower for cmd in sleep_commands):
                 speaker.speak("Understood, Sir. Returning to standby mode.")
                 active_conversation = False
                 continue 
 
-            # 3. Process & Speak
+            # step 3: get response and speak it
             response = brain.generate_response(text)
             speaker.speak(response)
             
-            # IF this was a direct action (opening site, checking time), go to standby now
+            # if it was an action then go back to standby 
             if is_action:
                 print("[System] Action completed. Returning to standby.")
                 active_conversation = False
@@ -93,7 +90,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception:
-        # Create an error log file if the EXE crashes
+        # logs the error to a file if it crashes
         with open("jarvis_error.log", "a") as f:
             f.write("\n--- JARVIS CRASH REPORT ---\n")
             traceback.print_exc(file=f)

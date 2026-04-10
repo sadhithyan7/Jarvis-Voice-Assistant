@@ -1,3 +1,7 @@
+# jarvis voice assistant
+my local ai assistant that runs on windows. i used groq and llama 3.1 to make him smart. he can open apps, check battery, and talk back.
+
+
 What is it? - A voice-activated Windows assistant using Groq LLM.
 
 How do I install it? - pip install -r requirements.txt.

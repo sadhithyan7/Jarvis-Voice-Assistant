@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Constants
+# constants
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-# We use Meta's fast Llama 3 model hosted on Groq
+# uses llama 3 on groq
 GROQ_MODEL = "llama-3.1-8b-instant"
 
 JARVIS_PERSONA = (
@@ -18,52 +18,52 @@ JARVIS_PERSONA = (
 
 FALLBACK_RESPONSE = "I seem to have lost my connection to the cloud, Sir."
 
-# Initialization
+# initialization
 client = Groq(api_key=GROQ_API_KEY)
 
-# We create a memory list so Jarvis remembers the conversation
+# create a memory list so Jarvis remembers the conversation
 chat_history = [
     {"role": "system", "content": JARVIS_PERSONA}
 ]
 
 print(f"[Brain] Chat session initialized with model: {GROQ_MODEL}")
 
-# Public API
 def generate_response(user_text: str) -> str:
     text_lower = user_text.lower()
     
-    # Intercept Action: Time
+    # check the time
     if "what time is it" in text_lower or "current time" in text_lower:
         return actions.get_current_time()
         
-    # Intercept Action: Open Website
+    # action: open web or app
     if text_lower.startswith("open "):
-        site_name = text_lower.replace("open ", "").strip()
-        return actions.open_website(site_name)
+        target = text_lower.replace("open ", "").strip()
+        force_web = "website" in target
+        # send full name, actions.py cleans up 'software' or 'app' words
+        return actions.open_dynamic_target(target, force_web=force_web)
         
-    # Intercept Action: Wikipedia
+    # check wiki stats
     if "search wikipedia for" in text_lower:
         query = text_lower.split("search wikipedia for")[1].strip()
         return actions.search_wikipedia(query)
 
-    # Intercept Action: Bluetooth
+    # bluetooth status check (still testing this)
     if "check bluetooth" in text_lower or "bluetooth" in text_lower:
         return actions.check_bluetooth()
         
-    # Intercept Action: Battery
+    # check battery stats
     if "battery" in text_lower:
         return actions.get_battery_stats()
         
-    # Intercept Action: Volume
+    # volume controls - up, down, mute (still testing)
     if "volume" in text_lower:
-        # Pass the full user_text so set_system_volume can look for 'up', 'down', or 'mute'
         return actions.set_system_volume(text_lower)
 
     try:
-        # Add the user's message to memory
+        # Adds your message to memory (temproary)
         chat_history.append({"role": "user", "content": user_text})
         
-        # Ask Groq for the response
+        # connects with groq fpr response
         completion = client.chat.completions.create(
             model=GROQ_MODEL,
             messages=chat_history,
@@ -82,11 +82,10 @@ def generate_response(user_text: str) -> str:
         print(f"[Brain Error]: {e}")
         return FALLBACK_RESPONSE
 
-# --- Test Mode ---
+# ---test---
 if __name__ == "__main__":
     print("\nJarvis Brain — Standalone Test Mode (Groq)")
     print("Type a message and press Enter. Type 'quit' to exit.\n")
-    
     while True:
         try:
             user_input = input("You: ").strip()
@@ -94,11 +93,9 @@ if __name__ == "__main__":
                 print("Jarvis: Shutting down. Goodbye, Sir.")
                 break
             if not user_input:
-                continue
-                
+                continue           
             response = generate_response(user_input)
             print(f"Jarvis: {response}\n")
-            
         except KeyboardInterrupt:
             print("\nJarvis: Understood, Sir. Powering down.")
             break
